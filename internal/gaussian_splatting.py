@@ -176,7 +176,9 @@ class GaussianSplatting(LightningModule):
     def setup(self, stage: str):
         if stage == "fit":
             if self.hparams["initialize_from"] is None:
-                self.gaussian_model.setup_from_pcd(xyz=self.trainer.datamodule.point_cloud.xyz, rgb=self.trainer.datamodule.point_cloud.rgb / 255.)
+                self.gaussian_model.setup_from_dataparser_outputs(
+                    self.trainer.datamodule.dataparser_outputs
+                )
             else:
                 self._initialize_gaussians_from_trained_model()
         else:
@@ -201,7 +203,10 @@ class GaussianSplatting(LightningModule):
             checkpoint["optimizer_states"] = []
 
         # reinitialize parameters based on the gaussian number in the checkpoint
-        self.gaussian_model.setup_from_number(checkpoint["state_dict"]["gaussian_model.gaussians.means"].shape[0])
+        self.gaussian_model.setup_from_checkpoint_state(
+            checkpoint["state_dict"],
+            prefix="gaussian_model.",
+        )
         if "frozen_gaussians.means" in checkpoint["state_dict"]:
             from internal.utils.gaussian_containers import TensorDict
             self.frozen_gaussians = TensorDict({

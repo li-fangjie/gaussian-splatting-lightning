@@ -178,8 +178,8 @@ class Cameras:
 
         P[:, 0, 0] = 2.0 * znear / (right - left)  # = 1 / tanHalfFovX = 2 * fx / width
         P[:, 1, 1] = 2.0 * znear / (top - bottom)  # = 2 * fy / height
-        P[:, 0, 2] = (right + left) / (right - left)  # = 0, right + left = 0
-        P[:, 1, 2] = (top + bottom) / (top - bottom)  # = 0, top + bottom = 0
+        P[:, 0, 2] = 2.0 * self.cx / self.width - 1.0
+        P[:, 1, 2] = 2.0 * self.cy / self.height - 1.0
         P[:, 3, 2] = z_sign
         P[:, 2, 2] = z_sign * zfar / (zfar - znear)
         P[:, 2, 3] = -(zfar * znear) / (zfar - znear)

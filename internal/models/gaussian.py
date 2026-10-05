@@ -110,6 +110,24 @@ class GaussianModel(nn.Module, ABC):
     def on_train_batch_end(self, step: int, module: "lightning.LightningModule"):
         pass
 
+    def setup_from_dataparser_outputs(self, outputs) -> None:
+        """Initialize from parser output; specialized models may override this hook."""
+        self.setup_from_pcd(
+            xyz=outputs.point_cloud.xyz,
+            rgb=outputs.point_cloud.rgb / 255.0,
+        )
+
+    def setup_from_checkpoint_state(
+            self,
+            state_dict: Dict[str, torch.Tensor],
+            prefix: str = "gaussian_model.",
+    ) -> None:
+        """Allocate per-Gaussian tensors before Lightning restores a checkpoint."""
+        means_key = f"{prefix}gaussians.means"
+        if means_key not in state_dict:
+            raise KeyError(f"Checkpoint is missing required tensor '{means_key}'")
+        self.setup_from_number(state_dict[means_key].shape[0])
+
 
 class Gaussian(InstantiatableConfig):
     def instantiate(self, *args, **kwargs) -> GaussianModel:
